@@ -26,8 +26,8 @@ bld/
 [Oo]bj/
 [Ll]og/
 
-PersonTracking/bin/
-PersonTracking/obj/
+**/bin/
+**/obj/
 
 # Visual Studio 2015 cache/options directory
 .vs/
