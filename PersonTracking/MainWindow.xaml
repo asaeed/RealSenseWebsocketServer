@@ -1,0 +1,45 @@
+﻿<Window x:Class="PersonTracking.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Intel® RealSense™ Code Sample - Person Tracking" Background="#FF222222" WindowStartupLocation="CenterScreen" Closing="Window_Closing" WindowState="Maximized">
+    <Window.Resources>
+        <Style x:Key="FaceStyle" TargetType="Label">
+            <Setter Property="Foreground" Value="LightGreen" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="Content" Value="-" />
+        </Style>
+        <Style x:Key="PersonStyle" TargetType="Label">
+            <Setter Property="Foreground" Value="Yellow" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="Content" Value="-" />
+        </Style>
+        <Style x:Key="MarkerStyle" TargetType="Rectangle">
+            <Setter Property="Fill" Value="#00000000" />
+            <Setter Property="Height" Value="50" />
+            <Setter Property="Width" Value="50" />
+            <Setter Property="StrokeThickness" Value="4" />
+            <Setter Property="Visibility" Value="Hidden" />
+        </Style>
+    </Window.Resources>
+    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
+        <Canvas Width="640" Height="480" ClipToBounds="True">
+            <Image x:Name="imgStream"  Width="640" Height="480" />
+            <Rectangle x:Name="rectFaceMarker" Style="{StaticResource MarkerStyle}" Stroke="LightGreen" />
+            <Rectangle x:Name="rectPersonMarker" Style="{StaticResource MarkerStyle}" Stroke="Yellow" />
+        </Canvas>
+        <StackPanel Margin="10">
+            <CheckBox x:Name="chkShowMarkers" Content="Show Markers" Foreground="White"  FontSize="16" IsChecked="True" />
+            <Label x:Name="lblFacesDetected" Style="{StaticResource FaceStyle}" />
+            <Label x:Name="lblFaceH" Style="{StaticResource FaceStyle}" />
+            <Label x:Name="lblFaceW" Style="{StaticResource FaceStyle}" />
+            <Label x:Name="lblFaceX" Style="{StaticResource FaceStyle}" />
+            <Label x:Name="lblFaceY" Style="{StaticResource FaceStyle}" />
+            <Label x:Name="lblFaceDepth" Style="{StaticResource FaceStyle}" />
+            <Label x:Name="lblNumberPersons" Style="{StaticResource PersonStyle}" />
+            <Label x:Name="lblPersonH" Style="{StaticResource PersonStyle}" />
+            <Label x:Name="lblPersonW" Style="{StaticResource PersonStyle}" />
+            <Label x:Name="lblPersonX" Style="{StaticResource PersonStyle}" />
+            <Label x:Name="lblPersonY" Style="{StaticResource PersonStyle}" />
+        </StackPanel>
+    </StackPanel>
+</Window>
