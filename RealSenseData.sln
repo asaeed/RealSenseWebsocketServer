@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersonTracking", "PersonTracking\PersonTracking.csproj", "{9765D640-595E-45DE-B380-044BBA593F40}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RealSenseData", "RealSenseData\RealSenseData.csproj", "{9765D640-595E-45DE-B380-044BBA593F40}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

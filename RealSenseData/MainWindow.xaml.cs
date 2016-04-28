@@ -25,7 +25,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 
-namespace PersonTracking
+namespace RealSenseData
 {
     public partial class MainWindow : Window
     {

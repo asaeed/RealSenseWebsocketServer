@@ -1,4 +1,4 @@
-﻿<Window x:Class="PersonTracking.MainWindow"
+﻿<Window x:Class="RealSenseData.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Intel® RealSense™ Code Sample - Person Tracking" Background="#FF222222" WindowStartupLocation="CenterScreen" Closing="Window_Closing" WindowState="Maximized">
