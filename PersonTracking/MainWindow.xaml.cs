@@ -36,8 +36,6 @@ namespace PersonTracking
         private Thread update;
         private const int ImageWidth = 640;
         private const int ImageHeight = 480;
-        private ushort cameraXPos = 0;
-        private ushort cameraYPos = 0;
 
         private WebSocketServer server;
         List<IWebSocketConnection> allSockets;
