@@ -20,6 +20,10 @@ using System.IO;
 using System.Drawing;
 using System.Threading;
 using System.Windows.Controls;
+using Fleck;
+using System.Collections.Generic;
+using System.Linq;
+using Newtonsoft.Json;
 
 namespace PersonTracking
 {
@@ -35,14 +39,43 @@ namespace PersonTracking
         private ushort cameraXPos = 0;
         private ushort cameraYPos = 0;
 
+        private WebSocketServer server;
+        List<IWebSocketConnection> allSockets;
+
         public MainWindow()
         {
             InitializeComponent();
             ConfigureRealSense();
+            ConfigureWebSockets();
 
             // Start the Update (data acquisition) thread
             update = new Thread(new ThreadStart(Update));
             update.Start();
+        }
+
+        private void ConfigureWebSockets()
+        {
+            allSockets = new List<IWebSocketConnection>();
+            server = new WebSocketServer("ws://0.0.0.0:8181");
+            server.ListenerSocket.NoDelay = true;
+            server.Start(socket =>
+            {
+                socket.OnOpen = () =>
+                {
+                    Console.WriteLine("Open!");
+                    allSockets.Add(socket);
+                };
+                socket.OnClose = () =>
+                {
+                    Console.WriteLine("Close!");
+                    allSockets.Remove(socket);
+                };
+                socket.OnMessage = (message) => 
+                {
+                    //socket.Send(message);
+                    //allSockets.ToList().ForEach(s => s.Send("Echo: " + message));
+                };
+            });
         }
 
         private void ConfigureRealSense()
@@ -84,8 +117,6 @@ namespace PersonTracking
             }
             catch (Exception)
             {
-                // For the sake of brevity we're not doing extensive exception handling in this code sample,
-                // simply give a hint that the camera is not connected, and then throw the exception
                 MessageBox.Show("Unable to configure the RealSense camera. Please make sure a R200 camera is connected.", "System Error");
                 throw;
             }
@@ -142,6 +173,12 @@ namespace PersonTracking
 
                 // Update UI
                 Render(colorBitmap, myTrackedPerson);
+
+                // serialize to json and send all clients
+                var json = JsonConvert.SerializeObject(myTrackedPerson);
+                allSockets.ToList().ForEach(s => s.Send(json));
+                // deserialize json as follows
+                //MyTrackedPerson deserializedProduct = JsonConvert.DeserializeObject<MyTrackedPerson>(json);
 
                 // Release resources
                 colorBitmap.Dispose();
