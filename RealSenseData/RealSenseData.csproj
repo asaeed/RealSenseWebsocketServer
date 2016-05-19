@@ -100,7 +100,8 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MyTrackedPerson.cs" />
+    <Compile Include="Model\MyBlob.cs" />
+    <Compile Include="Model\MyTrackedPerson.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>

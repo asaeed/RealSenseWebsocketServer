@@ -22,7 +22,7 @@
         </Style>
     </Window.Resources>
     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
-        <Canvas Width="640" Height="480" ClipToBounds="True">
+        <Canvas Width="640" Height="480" ClipToBounds="True" x:Name="MainCanvas">
             <Image x:Name="imgStream"  Width="640" Height="480" />
             <Rectangle x:Name="rectFaceMarker" Style="{StaticResource MarkerStyle}" Stroke="LightGreen" />
             <Rectangle x:Name="rectPersonMarker" Style="{StaticResource MarkerStyle}" Stroke="Yellow" />

@@ -24,6 +24,8 @@ using Fleck;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
+using System.Windows.Shapes;
+using System.Windows.Media;
 
 namespace RealSenseData
 {
@@ -148,6 +150,7 @@ namespace RealSenseData
 
                 // Create an instance of MyTrackedPerson
                 MyTrackedPerson myTrackedPerson = new MyTrackedPerson();
+                MyBlobs myBlobs = new MyBlobs();
 
                 // Acquire person tracking data
                 personData = personModule.QueryOutput();
@@ -192,12 +195,47 @@ namespace RealSenseData
                 }
 
                 blobData.Update();
+                int numBlobs = blobData.QueryNumberOfBlobs();
+                myBlobs.numBlobs = numBlobs;
+                myBlobs.blobs = new List<List<PXCMPointI32>>(numBlobs);
+                for (int i = 0; i < numBlobs; i++)
+                {
+                    PXCMBlobData.IBlob blob;
+                    pxcmStatus result1 = blobData.QueryBlob(i, PXCMBlobData.SegmentationImageType.SEGMENTATION_IMAGE_DEPTH, PXCMBlobData.AccessOrderType.ACCESS_ORDER_RIGHT_TO_LEFT, out blob);
+                    if (result1 == pxcmStatus.PXCM_STATUS_NO_ERROR)
+                    {
+                        int numContours = blob.QueryNumberOfContours();
+                        if (numContours > 0)
+                        {
+                            // only deal with outer contour
+                            for (int j = 0; j < numContours; j++)
+                            {
+                                PXCMBlobData.IContour contour;
+                                pxcmStatus result2 = blob.QueryContour(j, out contour);
+                                if (result2 == pxcmStatus.PXCM_STATUS_NO_ERROR)
+                                {
+                                    if (contour.IsOuter())
+                                    {
+                                        PXCMPointI32[]  points;
+                                        pxcmStatus result3 = contour.QueryPoints(out points);
+                                        if (result3 == pxcmStatus.PXCM_STATUS_NO_ERROR)
+                                        {
+                                            int numPoints = points.Length;
+                                            myBlobs.blobs.Add(points.ToList<PXCMPointI32>());
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
 
                 // Update UI
-                Render(colorBitmap, myTrackedPerson);
+                Render(colorBitmap, myTrackedPerson, myBlobs);
 
                 // serialize to json and send all clients
-                var json = JsonConvert.SerializeObject(myTrackedPerson);
+                //var json = JsonConvert.SerializeObject(myTrackedPerson);
+                var json = JsonConvert.SerializeObject(myBlobs);
                 allSockets.ToList().ForEach(s => s.Send(json));
                 // deserialize json as follows
                 //MyTrackedPerson deserializedProduct = JsonConvert.DeserializeObject<MyTrackedPerson>(json);
@@ -209,7 +247,7 @@ namespace RealSenseData
             }
         }
 
-        private void Render(Bitmap bitmap, MyTrackedPerson myTrackedPerson)
+        private void Render(Bitmap bitmap, MyTrackedPerson myTrackedPerson, MyBlobs myBlobs)
         {
             Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal, new Action(delegate ()
             {
@@ -262,6 +300,34 @@ namespace RealSenseData
                     {
                         rectPersonMarker.Visibility = Visibility.Hidden;
                     }
+
+                    // draw blobs' contours (outer only)
+                    // actually, don't bother drawing because it's stupid slow
+                    /*
+                    if (myBlobs.numBlobs > 0)
+                    {
+                        for (int i = 0; i < myBlobs.numBlobs; i++)
+                        {
+                            List<PXCMPointI32> currentBlob = myBlobs.blobs[i];
+
+                            for (int j = 0; j < currentBlob.Count; j++)
+                            { 
+                                Ellipse dot = new Ellipse();
+                                dot.Width = 2;
+                                dot.Height = 2;
+
+                                SolidColorBrush blueBrush = new SolidColorBrush();
+                                blueBrush.Color = Colors.Blue;
+                                dot.Fill = blueBrush;
+
+                                Canvas.SetLeft(dot, currentBlob[0].x);
+                                Canvas.SetTop(dot, currentBlob[0].y);
+
+                                //MainCanvas.Children.Add(dot);
+                            }
+                        }
+                    }
+                    */
                 }
                 else
                 {
@@ -297,6 +363,7 @@ namespace RealSenseData
             personData.Dispose();
             personModule.Dispose();
             faceData.Dispose();
+            blobData.Dispose();
             sm.Dispose();
         }
     }
