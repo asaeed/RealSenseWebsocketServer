@@ -30,9 +30,10 @@ namespace RealSenseData
     public partial class MainWindow : Window
     {
         private PXCMSenseManager sm;
-        private PXCMFaceData faceData;
         private PXCMPersonTrackingData personData;
         private PXCMPersonTrackingModule personModule;
+        private PXCMFaceData faceData;
+        private PXCMBlobData blobData;
         private Thread update;
         private const int ImageWidth = 640;
         private const int ImageHeight = 480;
@@ -92,6 +93,10 @@ namespace RealSenseData
                 PXCMPersonTrackingConfiguration personConfig = personModule.QueryConfiguration();
                 personConfig.SetTrackedAngles(PXCMPersonTrackingConfiguration.TrackingAngles.TRACKING_ANGLES_ALL);
 
+                // Enable skeleton tracking - not supported on r200?
+                //PXCMPersonTrackingConfiguration.SkeletonJointsConfiguration skeletonConfig = personConfig.QuerySkeletonJoints();
+                //skeletonConfig.Enable();
+           
                 // Enable the face module
                 sm.EnableFace();
                 PXCMFaceModule faceModule = sm.QueryFace();
@@ -99,11 +104,18 @@ namespace RealSenseData
                 faceConfig.SetTrackingMode(PXCMFaceConfiguration.TrackingModeType.FACE_MODE_COLOR_PLUS_DEPTH);
                 faceConfig.strategy = PXCMFaceConfiguration.TrackingStrategyType.STRATEGY_APPEARANCE_TIME;
                 faceConfig.detection.maxTrackedFaces = 1;
-
-                // Apply changes and initialize the SenseManager
                 faceConfig.ApplyChanges();
+
+                sm.EnableBlob();
+                PXCMBlobModule blobModule = sm.QueryBlob();
+                PXCMBlobConfiguration blobConfig = blobModule.CreateActiveConfiguration();
+                blobConfig.SetMaxBlobs(4); // 4 is the max
+                blobConfig.ApplyChanges();
+
+                //initialize the SenseManager
                 sm.Init();
                 faceData = faceModule.CreateOutput();
+                blobData = blobModule.CreateOutput();
 
                 // Mirror the image
                 sm.QueryCaptureManager().QueryDevice().SetMirrorMode(PXCMCapture.Device.MirrorMode.MIRROR_MODE_HORIZONTAL);
@@ -112,6 +124,8 @@ namespace RealSenseData
                 personConfig.Dispose();
                 faceConfig.Dispose();
                 faceModule.Dispose();
+                blobConfig.Dispose();
+                blobModule.Dispose();
             }
             catch (Exception)
             {
@@ -148,6 +162,14 @@ namespace RealSenseData
                     myTrackedPerson.Y = personBox.rect.y;
                     myTrackedPerson.H = personBox.rect.h;
                     myTrackedPerson.W = personBox.rect.w;
+
+                    /*
+                    PXCMPersonTrackingData.PersonJoints personJoints = trackedPerson.QuerySkeletonJoints();
+                    PXCMPersonTrackingData.PersonJoints.SkeletonPoint[] skeletonPoints = new PXCMPersonTrackingData.PersonJoints.SkeletonPoint[personJoints.QueryNumJoints()];
+                    trackedPerson.QuerySkeletonJoints().QueryJoints(skeletonPoints);
+                    if (skeletonPoints.Length > 0)
+                        skeletonPoints[0].GetType();
+                    */
                 }
 
                 // Acquire face tracking data
@@ -168,6 +190,8 @@ namespace RealSenseData
                     faceDetectionData.QueryFaceAverageDepth(out faceDepth);
                     myTrackedPerson.FaceDepth = faceDepth;
                 }
+
+                blobData.Update();
 
                 // Update UI
                 Render(colorBitmap, myTrackedPerson);
