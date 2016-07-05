@@ -112,6 +112,7 @@ namespace RealSenseData
                 PXCMBlobModule blobModule = sm.QueryBlob();
                 PXCMBlobConfiguration blobConfig = blobModule.CreateActiveConfiguration();
                 blobConfig.SetMaxBlobs(4); // 4 is the max
+                blobConfig.SetMaxDistance(2000); // in mm's
                 blobConfig.ApplyChanges();
 
                 //initialize the SenseManager
