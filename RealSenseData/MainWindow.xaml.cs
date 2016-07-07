@@ -42,6 +42,8 @@ namespace RealSenseData
 
         private WebSocketServer server;
         List<IWebSocketConnection> allSockets;
+        List<IWebSocketConnection> blobSockets;
+        List<IWebSocketConnection> personSockets;
 
         public MainWindow()
         {
@@ -57,6 +59,9 @@ namespace RealSenseData
         private void ConfigureWebSockets()
         {
             allSockets = new List<IWebSocketConnection>();
+            blobSockets = new List<IWebSocketConnection>();
+            personSockets = new List<IWebSocketConnection>();
+
             server = new WebSocketServer("ws://0.0.0.0:8181");
             server.ListenerSocket.NoDelay = true;
             server.Start(socket =>
@@ -70,9 +75,17 @@ namespace RealSenseData
                 {
                     Console.WriteLine("Close!");
                     allSockets.Remove(socket);
+                    blobSockets.Remove(socket);
+                    personSockets.Remove(socket);
                 };
                 socket.OnMessage = (message) => 
                 {
+                    dynamic req = JsonConvert.DeserializeObject(message);
+                    if (req.type == "blob")
+                        blobSockets.Add(socket);
+                    else if (req.type == "person")
+                        personSockets.Add(socket);
+
                     //socket.Send(message);
                     //allSockets.ToList().ForEach(s => s.Send("Echo: " + message));
                 };
@@ -199,12 +212,16 @@ namespace RealSenseData
                 int numBlobs = blobData.QueryNumberOfBlobs();
                 myBlobs.numBlobs = numBlobs;
                 myBlobs.blobs = new List<List<PXCMPointI32>>(numBlobs);
+                myBlobs.closestPoints = new List<PXCMPoint3DF32>(4);
                 for (int i = 0; i < numBlobs; i++)
                 {
                     PXCMBlobData.IBlob blob;
-                    pxcmStatus result1 = blobData.QueryBlob(i, PXCMBlobData.SegmentationImageType.SEGMENTATION_IMAGE_DEPTH, PXCMBlobData.AccessOrderType.ACCESS_ORDER_RIGHT_TO_LEFT, out blob);
+                    pxcmStatus result1 = blobData.QueryBlob(i, PXCMBlobData.SegmentationImageType.SEGMENTATION_IMAGE_DEPTH, PXCMBlobData.AccessOrderType.ACCESS_ORDER_NEAR_TO_FAR, out blob);
                     if (result1 == pxcmStatus.PXCM_STATUS_NO_ERROR)
                     {
+                        PXCMPoint3DF32 closestPoint = blob.QueryExtremityPoint(PXCMBlobData.ExtremityType.EXTREMITY_CLOSEST);
+                        myBlobs.closestPoints.Add(closestPoint);
+
                         int numContours = blob.QueryNumberOfContours();
                         if (numContours > 0)
                         {
@@ -235,9 +252,13 @@ namespace RealSenseData
                 Render(colorBitmap, myTrackedPerson, myBlobs);
 
                 // serialize to json and send all clients
-                //var json = JsonConvert.SerializeObject(myTrackedPerson);
-                var json = JsonConvert.SerializeObject(myBlobs);
-                allSockets.ToList().ForEach(s => s.Send(json));
+
+                var personJson = JsonConvert.SerializeObject(myTrackedPerson);
+                personSockets.ToList().ForEach(s => s.Send(personJson));
+
+                var blobJson = JsonConvert.SerializeObject(myBlobs);
+                blobSockets.ToList().ForEach(s => s.Send(blobJson));
+
                 // deserialize json as follows
                 //MyTrackedPerson deserializedProduct = JsonConvert.DeserializeObject<MyTrackedPerson>(json);
 
